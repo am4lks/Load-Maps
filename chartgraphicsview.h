@@ -13,6 +13,35 @@
 #include <QPointF>
 #include <QtMath>
 
+#include <QString>
+#include <cmath>
+
+QString decimalToDMS(double decimalDegrees, bool isLatitude) {
+    char hemisphere;
+    if (isLatitude) {
+        hemisphere = (decimalDegrees >= 0.0) ? 'N' : 'S';
+    } else {
+        hemisphere = (decimalDegrees >= 0.0) ? 'E' : 'W';
+    }
+
+    double val = std::abs(decimalDegrees);
+    int degrees = static_cast<int>(val);
+
+    double totalMinutes = (val - degrees) * 60.0;
+    int minutes = static_cast<int>(totalMinutes);
+
+    double seconds = (totalMinutes - minutes) * 60.0;
+
+    return QString("%1°%2'%3\" %4")
+        .arg(degrees)
+        .arg(minutes, 2, 10, QChar('0'))
+        .arg(seconds, 5, 'f', 2, QChar('0'))
+        .arg(hemisphere);
+}
+
+// Example usage:
+// QString latStr = decimalToDMS(10.27738, true);   // "10°16'38.57" N"
+// QString lonStr = decimalToDMS(76.15792, false);  // "76°09'28.51" E"
 struct ChartProjection {
     double centerLat = 0.0;
     double centerLon = 0.0;

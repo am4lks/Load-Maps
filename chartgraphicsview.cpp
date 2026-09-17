@@ -257,3 +257,18 @@ void ChartGraphicsView::redrawAllVectorLayers() {
         }
     }
 }
+
+void ChartGraphicsView::drawHeadingLine(const QPointF &startScenePos, double headingDeg) {
+    double w = viewport()->width();
+    double h = viewport()->height();
+
+    // 1. Calculate edge intersection
+    QPointF edgePoint = getRayEdgeIntersection(startScenePos, headingDeg, w, h);
+
+    // 2. Draw line from starting point to the screen boundary
+    QPen pen(Qt::yellow, 2, Qt::DashLine);
+    QGraphicsLineItem *line = scene->addLine(QLineF(startScenePos, edgePoint), pen);
+
+    // If you use vectorLayerGroup, attach it so it syncs with drags
+    line->setParentItem(vectorLayerGroup);
+}

@@ -98,6 +98,43 @@ struct WaypointRoute {
     QVector<QPointF> geoPoints; // x = lon, y = lat
 };
 
+#include <QPointF>
+#include <QtMath>
+#include <limits>
+#include <algorithm>
+
+// startPoint: Origin in scene/viewport coordinates
+// headingDeg: Angle in degrees (0 = North/Up, 90 = East/Right, clockwise)
+// w, h: Viewport dimensions (viewport()->width(), viewport()->height())
+QPointF getRayEdgeIntersection(const QPointF &startPoint, double headingDeg, double w, double h) {
+    double rad = qDegreesToRadians(headingDeg);
+    double dx =  qSin(rad);
+    double dy = -qCos(rad); // Negative because screen Y increases downward
+
+    double minT = std::numeric_limits<double>::infinity();
+
+    // 1. Check vertical boundaries (X = 0, X = w)
+    if (dx > 1e-6) {
+        double t = (w - startPoint.x()) / dx;
+        if (t > 0) minT = std::min(minT, t);
+    } else if (dx < -1e-6) {
+        double t = (0.0 - startPoint.x()) / dx;
+        if (t > 0) minT = std::min(minT, t);
+    }
+
+    // 2. Check horizontal boundaries (Y = 0, Y = h)
+    if (dy > 1e-6) {
+        double t = (h - startPoint.y()) / dy;
+        if (t > 0) minT = std::min(minT, t);
+    } else if (dy < -1e-6) {
+        double t = (0.0 - startPoint.y()) / dy;
+        if (t > 0) minT = std::min(minT, t);
+    }
+
+    // Edge intersection point
+    return QPointF(startPoint.x() + minT * dx, startPoint.y() + minT * dy);
+}
+
 class ChartGraphicsView : public QGraphicsView {
     Q_OBJECT
 
@@ -108,6 +145,7 @@ public:
     void zoomIn();
     void zoomOut();
 
+    void drawHeadingLine(const QPointF &startScenePos, double headingDeg);
 signals:
     void chartRequested(double lat, double lon, double range, int w, int h);
 
